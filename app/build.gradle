@@ -1,7 +1,12 @@
 apply plugin: 'com.android.application'
+apply plugin: 'jacoco'
+
+jacoco {
+    version "0.7.1.201405082137"
+}
 
 android {
-    compileSdkVersion 23
+    compileSdkVersion 21
     buildToolsVersion "21.1.1"
 
     defaultConfig {
@@ -19,10 +24,34 @@ android {
     }
 }
 
+task jacocoTestReport(type: JacocoReport, dependsOn: "testDebugUnitTest") {
+    group = "Reporting"
+    description = "Generate Jacoco coverage reports after running tests."
+    reports {
+        xml.enabled = true
+        html.enabled = true
+    }
+    classDirectories = fileTree(
+            dir: 'app/build/intermediates/classes/debug/com/apps/jsonhp/helloworld',
+            excludes: ['**/R.class',
+                       '**/R$*.class',
+                       '**/BuildConfig.*',
+                       '**/Manifest*.*'])
+    sourceDirectories = files('app/src/main/java')
+    executionData = files('build/jacoco/testDebugUnitTest.exec')
+    doFirst {
+        files('app/build/intermediates/classes/debug').getFiles().each { file ->
+            if (file.name.contains('$$')) {
+                file.renameTo(file.path.replace('$$', '$'))
+            }
+        }
+    }
+}
+
 dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'org.robolectric:robolectric:3.0'
     androidTestCompile 'com.jayway.android.robotium:robotium-solo:5.5.4'
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:23.0.1'
+    compile 'com.android.support:appcompat-v7:21+'
 }
